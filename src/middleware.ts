@@ -7,18 +7,19 @@ export const config = {
 };
 
 export async function middleware(request: NextRequest) {
-  // const token = await getToken({ req: request });
-  // const url = request.nextUrl;
+  const token = await getToken({ req: request });
+  const url = new URL(request.url);
+  const pathname = url.pathname;
 
-  // // Redirect to dashboard if the user is already authenticated
-  // // and trying to access sign-in, sign-up, or home page
-  // if (token && (url.pathname.startsWith("https://mysterymessage-eight.vercel.app/sign-in") || url.pathname.startsWith("https://mysterymessage-eight.vercel.app/sign-up") || url.pathname.startsWith("/verify") || url.pathname === "/")) {
-  //   return NextResponse.redirect(new URL("/dashboard", request.url));
-  // }
+  // If the user has a token and is trying to access the sign-in, sign-up, verify, or home page, redirect to the dashboard
+  if (token && (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up") || pathname.startsWith("/verify") || pathname === "/")) {
+    return NextResponse.redirect(new URL("/dashboard", url.origin));
+  }
 
-  // if (!token && url.pathname.startsWith("/dashboard")) {
-  //   return NextResponse.redirect(new URL("/sign-in", request.url));
-  // }
+  // If the user doesn't have a token and is trying to access the dashboard, redirect to the sign-in page
+  if (!token && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/sign-in", url.origin));
+  }
 
   return NextResponse.next();
 }
