@@ -9,17 +9,20 @@ export async function middleware(request: NextRequest) {
   // Retrieve the token from the request
   const token = await getToken({ req: request });
 
-  // Get the URL from the request
-  const { pathname } = request.nextUrl;
+  // Get the pathname from the request URL
+  const pathname = new URL(request.url).pathname;
+
+  // Get the origin from the request headers
+  const origin = request.headers.get("origin") || "";
 
   // If the user has a token and is trying to access the sign-in, sign-up, verify, or home page, redirect to the dashboard
   if (token && (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up") || pathname.startsWith("/verify") || pathname === "/")) {
-    return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/dashboard", origin));
   }
 
   // If the user doesn't have a token and is trying to access the dashboard, redirect to the sign-in page
   if (!token && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/sign-in", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/sign-in", origin));
   }
 
   // If no redirection is needed, continue to the requested page
