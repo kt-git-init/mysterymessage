@@ -160,7 +160,7 @@ export default function SendMessage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-center">No messages available. Click "Suggest Messages" to get some ideas.</p>
+              <p className="text-center">No messages available. Click &quot;Suggest Messages&quot; to get some ideas.</p>
             )}
           </CardContent>
         </Card>
