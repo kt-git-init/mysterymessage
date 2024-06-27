@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios, { AxiosError } from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -8,7 +8,6 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CardHeader, CardContent, Card } from "@/components/ui/card";
-import { useCompletion } from "ai/react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
@@ -32,20 +31,6 @@ export default function SendMessage() {
   const username = params.username;
   const { toast } = useToast();
 
-  console.log(params);
-  console.log(username);
-
-  //TODO: CREATE A API WHERE YOU SEND BACK THE DATA OF 3 PROMPT FROM OTHER FILE
-  const {
-    complete,
-    completion,
-    isLoading: isSuggestLoading,
-    error,
-  } = useCompletion({
-    api: "/api/suggest-messages",
-    initialCompletion: initialMessageString,
-  });
-
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
   });
@@ -54,9 +39,11 @@ export default function SendMessage() {
 
   const handleMessageClick = (message: string) => {
     form.setValue("content", message);
+    form.setFocus("content");
   };
 
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestedMessages, setSuggestedMessages] = useState<string[]>(parseStringMessages(initialMessageString));
 
   const onSubmit = async (data: z.infer<typeof messageSchema>) => {
     setIsLoading(true);
@@ -85,10 +72,15 @@ export default function SendMessage() {
 
   const fetchSuggestedMessages = async () => {
     try {
-      complete("");
+      const response = await axios.post("/api/suggest-messages");
+      setSuggestedMessages(response.data.messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
-      // Handle error appropriately
+      toast({
+        title: "Error",
+        description: "Failed to fetch suggested messages.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -140,7 +132,7 @@ export default function SendMessage() {
           <Button
             onClick={fetchSuggestedMessages}
             className="my-4"
-            disabled={isSuggestLoading}
+            disabled={isLoading}
           >
             Suggest Messages
           </Button>
@@ -151,19 +143,24 @@ export default function SendMessage() {
             <h3 className="text-xl font-semibold">Messages</h3>
           </CardHeader>
           <CardContent className="flex flex-col space-y-4">
-            {error ? (
-              <p className="text-red-500">{error.message}</p>
+            {suggestedMessages.length > 0 ? (
+              <ul className="list-disc pl-5">
+                {suggestedMessages.map((message) => (
+                  <li
+                    key={message}
+                    className="mb-2 list-none"
+                  >
+                    <div
+                      className="border-2 p-5 rounded-lg cursor-pointer hover:bg-gray-100 hover:border-indigo-500 hover:font-bold transition-colors"
+                      onClick={() => handleMessageClick(message)}
+                    >
+                      {message}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              parseStringMessages(completion).map((message, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="mb-2"
-                  onClick={() => handleMessageClick(message)}
-                >
-                  {message}
-                </Button>
-              ))
+              <p className="text-center">No messages available. Click "Suggest Messages" to get some ideas.</p>
             )}
           </CardContent>
         </Card>
