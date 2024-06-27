@@ -6,7 +6,7 @@ function getRandomQuestions(questions: string[]): string[] {
   return shuffled.slice(0, 3);
 }
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     // Select 3 random questions
     const randomQuestions = getRandomQuestions(suggestedMessages);
