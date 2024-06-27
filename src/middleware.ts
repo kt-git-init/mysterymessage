@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", url.origin));
   }
 
-  // If the user doesn't have a token and is trying to access the dashboard, redirect to the sign-in page
+  // If the user doesn't have a token and is trying to access the dashboard, redirect to the sign-in page new changes and fixes
   if (!token && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/sign-in", url.origin));
   }
